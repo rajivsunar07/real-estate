@@ -10,10 +10,12 @@ from sqlalchemy.sql import text
 
 class RealEstateETL:
 
+    # name of files to store raw json data and cleaned data
     file_name = 'data/extracted-data.json'
     cleaned_file_name = 'data/transformed-data.csv'
 
     def extract(self):
+        ''' Extract raw data from the website '''
         page = 1
         file_name = self.file_name
     
@@ -50,6 +52,8 @@ class RealEstateETL:
         print("Extraction completed")
 
     def transform(self):
+        ''' Transform the data '''
+
         with open(self.file_name, 'r') as fr:
             data = json.load(fr)
             data = data['data']
@@ -239,6 +243,8 @@ class RealEstateETL:
         return df
 
     def load(self):
+        ''' data loaded to the required database '''
+        
         data_df = pd.read_csv(self.cleaned_file_name)
        
         load_dotenv(find_dotenv())
@@ -253,10 +259,11 @@ class RealEstateETL:
             )
 
         data_df.to_sql(os.getenv('TABLE'), engine)
+        print('Data Loaded')
 
 
 if __name__ == '__main__':
     etl = RealEstateETL()
-    # etl.extract()
-    # etl.transform()
+    etl.extract()
+    etl.transform()
     etl.load()

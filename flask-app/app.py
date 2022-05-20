@@ -18,6 +18,7 @@ app = Flask(__name__)
 #             )
 #         )
 
+# Engine for the database connection
 engine = create_engine(
             '{databaseuri}?sslmode=require'.format(
                 databaseuri = os.getenv('DATABASE_URI'),
