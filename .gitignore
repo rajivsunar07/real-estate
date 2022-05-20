@@ -1,0 +1,10 @@
+*.env
+*.json
+*.csv
+
+Pipfile.lock
+Pipfile
+
+.DS_Store
+
+__pycache__

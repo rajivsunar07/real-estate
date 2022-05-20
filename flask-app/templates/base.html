@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" integrity="sha384-zCbKRCUGaJDkqS1kPbPd7TveP5iyJE0EjAuZQTgFLD2ylzuqKfdKlfG/eSrtxUkn" crossorigin="anonymous">
+    <title>Real Estate data</title>
+
+</head>
+<body> 
+    <div class="container-fluid text-center mt-4">
+        <h3>Select location</h3>
+    </div>
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="dropdown m-3">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-expanded="false">
+                    {% if  'district' in args %}
+                        {{args['district']}}
+                    {% else %}
+                        District
+                    {% endif %}
+                    
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    {% for i in districts %}
+                        <a class="dropdown-item" href="/?district={{i}}">{{ i }}</a>
+                    {% endfor %}
+                 
+                </div>
+            </div>
+        
+            <div class="dropdown m-3">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-expanded="false">
+                    {% if  'city' in args %}
+                        {{args['city']}}
+                    {% else %}
+                        City
+                    {% endif %}
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    {% if cities|length == 0 %}
+                        <h class="dropdown-item">Select a district</h>
+                    {% endif %}
+                    {% for i in cities %}
+                        <a class="dropdown-item" href="/?district={{args['district']}}&city={{i}}">{{ i }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+            <a href="/" class="btn btn-success m-3">Show all districts</a>
+        </div>
+    </div>
+
+    <div class="container">
+            <canvas id="myChart"></canvas>
+
+            <div class="row justify-content-end p-0 m-0 mt-2">
+                <h3 class="align-self-center pt-2 align-self-start pr-4 mr-4">Total number of data: {{data|length}} </h3>
+                <h6 class="range align-self-center pt-2 mr-4" style="visibility: hidden;">Current range: 0 - 10</h6>
+                <button class="up m-2 btn btn-success" style="visibility: hidden;"><i class="fa-solid fa-up-long mr-2"></i>Up</button>
+                <button class="down m-2 btn btn-danger" style="visibility: hidden;"><i class="fa-solid fa-down-long mr-2"></i>Down</button>
+            </div>
+            <div class="row justify-content-end p-0 m-0 mt-2 info" style="visibility: hidden;">
+                <h6 class="text-muted">(You can also use mouse scroll on the chart)</h6>
+            </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-fQybjgWLrvvRgtW6bFlB7jaZrFsaBXjsOMm/tB9LTS58ONXgqbR9W8oWht/amnpF" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+    
+    <script>
+        $(document).ready(function(){
+
+            const labels = {{labels|safe}};
+            const data = {{data|safe}};
+            const chart = document.getElementById('myChart').getContext('2d');
+
+            const config_data = {
+                labels: labels,
+                datasets: [{
+                    label: 'Average house prices'  ,
+                    data: data,
+                    
+                }]
+            };
+
+            const config = {
+                type: 'bar',
+                data: config_data,
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    backgroundColor:  'rgba(255, 99, 132, 0.2)',
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 20
+                        }
+                    }
+                }
+            };
+
+            const myChart = new Chart(
+                chart,
+                config
+            );
+
+            const up = document.querySelector('.up');
+            const down = document.querySelector('.down');
+            const range = document.querySelector('.range');
+            const info = document.querySelector('.info');
+
+
+
+            function changeUp(){
+                if(myChart.config.options.scales.y.min <= 0){
+                    myChart.config.options.scales.y.min = 0;
+                    myChart.config.options.scales.y.max = 20;
+                }else{
+                    myChart.config.options.scales.y.min -= 1
+                    myChart.config.options.scales.y.max -= 1
+
+                    range.innerHTML = 'Current range: ' + myChart.config.options.scales.y.min.toString() + '-' + myChart.config.options.scales.y.max.toString()  ;
+                    changeVisibility();
+                    
+                }
+
+                myChart.update();
+            }
+
+            function changeDown(){
+                const dataLength = myChart.data.labels.length;
+                if(myChart.config.options.scales.y.max >= dataLength){
+                    myChart.config.options.scales.y.min = dataLength - 20
+                    myChart.config.options.scales.y.max = dataLength;
+                }else{
+                    myChart.config.options.scales.y.min += 1
+                    myChart.config.options.scales.y.max += 1
+
+                    range.innerHTML = 'Current range: ' + myChart.config.options.scales.y.min.toString() + '-' + myChart.config.options.scales.y.max.toString()  ;
+                    changeVisibility();
+
+                }
+
+                myChart.update();
+            }
+
+            function changeVisibility(){
+                if(myChart.config.options.scales.y.min == 0){
+                    up.style.visibility = 'hidden';
+                }else{
+                    up.style.visibility = 'visible';
+                }
+
+                if(myChart.config.options.scales.y.max == myChart.data.labels.length){
+                    down.style.visibility = 'hidden';
+                }else{
+                    down.style.visibility = 'visible';
+                }
+            }
+
+            if(myChart.data.labels.length > 20){
+                
+                range.style.visibility = 'visible';
+                info.style.visibility = 'visible';
+
+                changeVisibility();
+
+                up.addEventListener('click', (e)=>{changeUp()})
+                down.addEventListener('click', (e)=>{changeDown()})
+            }
+
+            function scroller(scroll, chart) {
+                const dataLength = myChart.data.labels.length;
+
+                if(scroll.deltaY > 0){
+                   changeDown()
+                }else if(scroll.deltaY < 0) {
+                    changeUp()
+                }
+            } 
+
+            myChart.canvas.addEventListener('wheel', (e) => {
+                scroller(e, myChart)
+            })
+
+        })
+    </script>
+
+    
+</body>
+</html>
